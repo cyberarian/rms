@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>arsipy-hki_analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="Arsipy-HKI_Analysis_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Arsipy-HKI_Analysis_files/libs/quarto-html/quarto.js"></script>
+<script src="Arsipy-HKI_Analysis_files/libs/quarto-html/popper.min.js"></script>
+<script src="Arsipy-HKI_Analysis_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Arsipy-HKI_Analysis_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Arsipy-HKI_Analysis_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Arsipy-HKI_Analysis_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Arsipy-HKI_Analysis_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Arsipy-HKI_Analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Arsipy-HKI_Analysis_files/libs/bootstrap/bootstrap-8a79a254b8e706d3c925cde0a310d4f0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="hki-records-management-system-comprehensive-analysis" class="level1">
+<h1>HKI Records Management System: Comprehensive Analysis</h1>
+<p><strong>Date:</strong> October 26, 2023 <strong>Version:</strong> 1.0</p>
+<section id="table-of-contents" class="level2">
+<h2 class="anchored" data-anchor-id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#product-manager-perspective">Product Manager Perspective</a>
+<ul>
+<li><a href="#purpose-and-value-proposition">Purpose and Value Proposition</a></li>
+<li><a href="#key-features">Key Features</a></li>
+<li><a href="#target-users">Target Users</a></li>
+<li><a href="#user-stories-examples">User Stories (Examples)</a></li>
+<li><a href="#potential-future-enhancements">Potential Future Enhancements</a></li>
+</ul></li>
+<li><a href="#software-architect-perspective">Software Architect Perspective</a>
+<ul>
+<li><a href="#system-architecture-overview">System Architecture Overview</a></li>
+<li><a href="#key-technologies-and-frameworks">Key Technologies and Frameworks</a></li>
+<li><a href="#data-flow-diagrams">Data Flow Diagrams</a>
+<ul>
+<li><a href="#document-ingestion-and-processing-flow">Document Ingestion and Processing Flow</a></li>
+<li><a href="#rag-chatbot-query-flow">RAG Chatbot Query Flow</a></li>
+</ul></li>
+<li><a href="#component-breakdown-and-interactions">Component Breakdown and Interactions</a></li>
+<li><a href="#data-storage-strategy">Data Storage Strategy</a></li>
+<li><a href="#aiml-integration-strategy">AI/ML Integration Strategy</a></li>
+<li><a href="#security-considerations">Security Considerations</a></li>
+<li><a href="#scalability-and-performance">Scalability and Performance</a></li>
+<li><a href="#deployment-model">Deployment Model</a></li>
+</ul></li>
+<li><a href="#software-developer-perspective">Software Developer Perspective</a>
+<ul>
+<li><a href="#codebase-structure-and-key-modules">Codebase Structure and Key Modules</a></li>
+<li><a href="#core-logic-walkthroughs">Core Logic Walkthroughs</a>
+<ul>
+<li><a href="#admin-authentication-apppy">Admin Authentication (<code>app.py</code>)</a></li>
+<li>Document Upload and Initial Analysis (<code>CRUD_st.py</code>)</li>
+<li>Document Processing for RAG (<code>app.py</code>, <code>document_processor.py</code>)</li>
+<li>CRUD Operations Implementation (<code>CRUD_st.py</code>)</li>
+<li>RAG Chain Setup and Execution (<code>app.py</code>)</li>
+</ul></li>
+<li>Database Schema (SQLite)</li>
+<li>Key Classes and Functions Deep Dive
+<ul>
+<li><code>UnifiedDocumentProcessor</code> (<code>d:\p3ri\arsipy-hki\document_processor.py</code>)</li>
+<li><code>EnhancedModelManager</code> &amp; <code>DocumentMetadataExtractor</code> (<code>d:\p3ri\arsipy-hki\image_analyzer.py</code>)</li>
+<li><code>FusionRetriever</code> (<code>d:\p3ri\arsipy-hki\retrieval\fusion_retriever.py</code>)</li>
+<li>LLM Integration (<code>app.py</code>)</li>
+</ul></li>
+<li>Environment and Dependencies</li>
+<li>Code Quality and Maintainability Observations</li>
+<li>Potential Areas for Refactoring or Improvement</li>
+</ul></li>
+<li>Conclusion</li>
+</ol>
+</section>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>The HKI Records Management System (RMS) is a sophisticated web application designed to streamline the management, retrieval, and analysis of construction project records for HKI (Hutama Karya Infrastruktur, inferred). It leverages modern AI and machine learning technologies, including Large Language Models (LLMs) and Optical Character Recognition (OCR), to provide an intelligent, efficient, and user-friendly platform. The system features a RAG (Retrieval Augmented Generation) based chatbot for querying document contents, comprehensive CRUD (Create, Read, Update, Delete) functionalities for record metadata management, and an admin panel for system control and document ingestion.</p>
+<p>This document provides an extensive analysis of the HKI RMS from three key perspectives: Product Manager, Software Architect, and Software Developer, aiming to offer a holistic understanding of its design, functionality, and technical implementation.</p>
+<hr>
+</section>
+<section id="product-manager-perspective" class="level2">
+<h2 class="anchored" data-anchor-id="product-manager-perspective">Product Manager Perspective</h2>
+<section id="purpose-and-value-proposition" class="level3">
+<h3 class="anchored" data-anchor-id="purpose-and-value-proposition">Purpose and Value Proposition</h3>
+<p><strong>Purpose:</strong> To modernize and enhance HKI’s records management processes for construction projects by providing a centralized, AI-powered digital platform. This system aims to improve information accessibility, ensure data integrity, support compliance, and boost operational efficiency.</p>
+<p><strong>Value Proposition:</strong> * <strong>Enhanced Efficiency:</strong> Drastically reduces time spent searching for and extracting information from project documents through AI-powered search and analysis. * <strong>Improved Accessibility:</strong> Centralized digital repository makes records easily accessible to authorized personnel, anytime, anywhere. * <strong>Intelligent Insights:</strong> The RAG chatbot allows users to ask complex questions about document contents and receive summarized, context-aware answers with source references. * <strong>Data-Driven Decision Making:</strong> Quick access to accurate information supports better and faster decision-making. * <strong>Streamlined Compliance:</strong> Facilitates adherence to record-keeping standards and regulations (e.g., ISO 15489, national archival rules mentioned in <code>d:\p3ri\arsipy-hki\landing_page.py</code>). * <strong>Automated Metadata Extraction:</strong> AI assists in automatically populating metadata fields during document upload, reducing manual effort and improving consistency.</p>
+</section>
+<section id="key-features" class="level3">
+<h3 class="anchored" data-anchor-id="key-features">Key Features</h3>
+<ol type="1">
+<li><strong>Landing Page (<code>d:\p3ri\arsipy-hki\landing_page.py</code>):</strong>
+<ul>
+<li>Professionally designed entry point introducing the system’s purpose and benefits.</li>
+<li>Secure transition to the main application.</li>
+</ul></li>
+<li><strong>Admin Panel (<code>d:\p3ri\arsipy-hki\app.py</code>):</strong>
+<ul>
+<li>Password-protected access for administrators.</li>
+<li><strong>Document Upload:</strong> Supports various file types (PDF, TXT, PNG, JPG, JPEG, XLSX, DOCX).</li>
+<li><strong>Document Processing:</strong> Initiates AI-driven text extraction, OCR, chunking, and indexing into a vector store (ChromaDB) for RAG.</li>
+<li><strong>System Reset:</strong> Functionality to clear the vector database and processed file logs.</li>
+</ul></li>
+<li><strong>Records Management (CRUD) (<code>d:\p3ri\arsipy-hki\CRUD_st.py</code>, <code>d:\p3ri\arsipy-hki\app.py</code>):</strong>
+<ul>
+<li><strong>Create Document Record:</strong>
+<ul>
+<li>Form for manual input of document metadata.</li>
+<li>AI-powered analysis of uploaded files (<code>analyze_uploaded_document</code> in <code>CRUD_st.py</code>) to pre-fill form fields (title, description, doc number, archive code, department).</li>
+<li>Support for multiple file uploads per record.</li>
+</ul></li>
+<li><strong>Read Document Records:</strong>
+<ul>
+<li>Tabular display of all document records with comprehensive details.</li>
+<li>Filtering capabilities (by department, project, archive code, status).</li>
+<li>Export to CSV.</li>
+</ul></li>
+<li><strong>Update Document Record:</strong>
+<ul>
+<li>Form to modify existing document metadata.</li>
+</ul></li>
+<li><strong>Delete Document Record:</strong>
+<ul>
+<li>Secure deletion of document records and associated files (admin-only).</li>
+<li>Bulk delete option with confirmation.</li>
+</ul></li>
+</ul></li>
+<li><strong>AI-Powered Chatbot (<code>d:\p3ri\arsipy-hki\app.py</code>):</strong>
+<ul>
+<li>RAG-based question answering using ingested documents.</li>
+<li>Utilizes <code>FusionRetriever</code> for enhanced retrieval accuracy.</li>
+<li>Supports multiple LLMs (Llama 4 Maverick via Groq, DeepSeek via HuggingFace).</li>
+<li>Formatted responses including summary, details, technical specifications, and document references.</li>
+<li>Chat history display and clearing functionality.</li>
+</ul></li>
+<li><strong>Document Content Analysis (<code>d:\p3ri\arsipy-hki\document_processor.py</code>, <code>d:\p3ri\arsipy-hki\image_analyzer.py</code>):</strong>
+<ul>
+<li><strong>Text Extraction:</strong> Handles PDF, DOCX, XLSX, images, and plain text.</li>
+<li><strong>Advanced OCR:</strong>
+<ul>
+<li>Cascading OCR (Tesseract first, then Gemini for images if Tesseract quality is low).</li>
+<li>Image enhancement pre-processing for better OCR accuracy.</li>
+</ul></li>
+<li><strong>Image Analysis:</strong> Uses Gemini to describe image content, identify technical details, and explain context in construction documents.</li>
+<li><strong>Markdown Output:</strong> Saves extracted text and image analyses as Markdown files.</li>
+</ul></li>
+<li><strong>User Interface (Streamlit):</strong>
+<ul>
+<li>Tabbed interface for Chatbot, Records Management, Document List, Guides, and About sections.</li>
+<li>Responsive design for usability.</li>
+</ul></li>
+</ol>
+</section>
+<section id="target-users" class="level3">
+<h3 class="anchored" data-anchor-id="target-users">Target Users</h3>
+<ul>
+<li><strong>HKI Project Managers &amp; Engineers:</strong> For quick access to technical specifications, drawings, reports, and project documentation.</li>
+<li><strong>HKI Archivists/Records Managers:</strong> For managing the lifecycle of project records, ensuring compliance, and maintaining the integrity of the archive.</li>
+<li><strong>HKI Department Staff (e.g., Teknik dan Desain, Sekretaris Perusahaan):</strong> For accessing and managing documents relevant to their department.</li>
+<li><strong>HKI Executives:</strong> For high-level insights and status checks based on project documentation.</li>
+</ul>
+</section>
+<section id="user-stories-examples" class="level3">
+<h3 class="anchored" data-anchor-id="user-stories-examples">User Stories (Examples)</h3>
+<ul>
+<li><strong>As a Project Engineer,</strong> I want to upload a new design specification (PDF) so that its metadata is automatically extracted and it becomes searchable by the team.</li>
+<li><strong>As a Project Manager,</strong> I want to ask the chatbot “What are the concrete strength requirements for the Medan-Binjai project’s bridge foundations?” so I can quickly find the relevant information without manually searching through multiple documents.</li>
+<li><strong>As an Archivist,</strong> I want to view a list of all documents related to the “TIP Pekanbaru - Dumai” project and filter them by “As Built” status so I can perform a compliance check.</li>
+<li><strong>As an Administrator,</strong> I want to upload a batch of historical project documents (various formats) so they are processed and added to the RAG system.</li>
+<li><strong>As a Department Head,</strong> I want to update the status of a document from “Diterbitkan untuk Konstruksi” to “As Built” once the work is completed.</li>
+<li><strong>As a new HKI employee,</strong> I want to use the chatbot to understand the standard procedure for document numbering as per the archival manual.</li>
+</ul>
+</section>
+<section id="potential-future-enhancements" class="level3">
+<h3 class="anchored" data-anchor-id="potential-future-enhancements">Potential Future Enhancements</h3>
+<ul>
+<li><strong>Advanced Search:</strong> Implement keyword search with faceting and sorting directly on the document list, beyond the current filters.</li>
+<li><strong>Version Control for Documents:</strong> Allow uploading new versions of existing documents and tracking version history.</li>
+<li><strong>Workflow Automation:</strong> Integrate simple approval workflows for document status changes.</li>
+<li><strong>User Roles and Permissions:</strong> More granular access control beyond the current admin/non-admin distinction.</li>
+<li><strong>Reporting and Analytics:</strong> Dashboards showing document statistics, processing times, popular queries, etc.</li>
+<li><strong>Integration with other HKI Systems:</strong> Connect with project management or ERP systems for seamless data flow.</li>
+<li><strong>Automated Document Classification:</strong> Use AI to automatically suggest department, project, or archive codes based on content.</li>
+<li><strong>Enhanced Collaboration:</strong> Features for commenting or annotating documents.</li>
+<li><strong>Offline Access/Mobile App:</strong> For field engineers or users with limited connectivity.</li>
+<li><strong>Multilingual Support:</strong> If HKI deals with international partners or documents in other languages.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="software-architect-perspective" class="level2">
+<h2 class="anchored" data-anchor-id="software-architect-perspective">Software Architect Perspective</h2>
+<section id="system-architecture-overview" class="level3">
+<h3 class="anchored" data-anchor-id="system-architecture-overview">System Architecture Overview</h3>
+<p>The HKI Records Management System is a monolithic application built with Streamlit, serving as both the frontend and backend orchestration layer. It integrates several specialized components for AI processing, data storage, and CRUD operations.</p>
+<pre class="mermaid"><code>graph TD
+    A[User Browser] --&gt; B(Streamlit Application - app.py);
+
+    subgraph Frontend_Backend_Logic [Streamlit App - app.py]
+        B --&gt; BA[Landing Page Logic];
+        B --&gt; BB[Admin Panel &amp; Auth];
+        B --&gt; BC[Chat Interface &amp; RAG Chain];
+        B --&gt; BD[CRUD UI Orchestration];
+    end
+
+    subgraph Core_Modules
+        CM1(CRUD Operations - CRUD_st.py)
+        CM2(Document Processor - document_processor.py)
+        CM3(Image Analyzer - image_analyzer.py)
+        CM4(Fusion Retriever - retrieval/fusion_retriever.py)
+    end
+
+    BB --&gt; CM2;
+    BC --&gt; CM4;
+    CM4 --&gt; LLMAPI[LLM APIs - Groq/HuggingFace];
+    CM4 --&gt; VS[ChromaDB Vector Store];
+    BD --&gt; CM1;
+
+    CM2 --&gt; CM3;
+    CM3 --&gt; OCR[OCR Services - Tesseract/Gemini Vision];
+    CM2 --&gt; VS;
+    CM1 --&gt; DB[SQLite Database];
+
+    subgraph External_AI_Services
+        LLMAPI;
+        OCR;
+    end
+
+    subgraph Data_Stores
+        VS;
+        DB;
+    end
+
+    style Frontend_Backend_Logic fill:#e6f3ff,stroke:#333,stroke-width:2px
+    style Core_Modules fill:#f0fff0,stroke:#333,stroke-width:2px
+    style External_AI_Services fill:#fff0e6,stroke:#333,stroke-width:2px
+    style Data_Stores fill:#f5f5f5,stroke:#333,stroke-width:2px</code></pre>
+<p><strong>Key Architectural Characteristics:</strong> * <strong>Streamlit-centric:</strong> Streamlit manages the UI, application state, and acts as the primary request handler. * <strong>Modular Python Backend:</strong> Core functionalities like document processing, CRUD, and AI interactions are encapsulated in separate Python modules/classes. * <strong>Dual Database System:</strong> * <strong>SQLite:</strong> Stores structured metadata about documents (title, dates, department, etc.). Managed by <code>d:\p3ri\arsipy-hki\CRUD_st.py</code>. * <strong>ChromaDB:</strong> Serves as a vector store for document chunks and their embeddings, enabling semantic search for the RAG system. * <strong>External AI Service Integration:</strong> Relies on external APIs for LLM capabilities (Groq, HuggingFace) and advanced image analysis/OCR (Google Gemini). Tesseract is used locally for OCR. * <strong>Admin-Gated Functionality:</strong> Critical operations like document processing and deletion are protected by a simple password-based admin authentication.</p>
+</section>
+<section id="key-technologies-and-frameworks" class="level3">
+<h3 class="anchored" data-anchor-id="key-technologies-and-frameworks">Key Technologies and Frameworks</h3>
+<ul>
+<li><strong>Frontend &amp; Application Server:</strong> Streamlit</li>
+<li><strong>Backend Language:</strong> Python</li>
+<li><strong>AI/ML Orchestration:</strong> LangChain</li>
+<li><strong>LLMs:</strong>
+<ul>
+<li><code>meta-llama/llama-4-maverick-17b-128e-instruct</code> (via Groq API)</li>
+<li><code>deepseek-ai/DeepSeek-V3-0324</code> (via HuggingFace InferenceClient)</li>
+<li>Google Gemini (Pro for text, Flash for image analysis, via <code>google-generativeai</code> SDK)</li>
+</ul></li>
+<li><strong>Embeddings:</strong> <code>sentence-transformers/all-mpnet-base-v2</code> (via HuggingFaceEmbeddings in LangChain)</li>
+<li><strong>Vector Store:</strong> ChromaDB</li>
+<li><strong>Relational Database:</strong> SQLite3</li>
+<li><strong>OCR:</strong>
+<ul>
+<li>Pytesseract (Tesseract OCR wrapper)</li>
+<li>Google Gemini Vision (for images, as part of <code>document_processor.py</code> and <code>image_analyzer.py</code>)</li>
+</ul></li>
+<li><strong>Document Parsing:</strong>
+<ul>
+<li>PyMuPDF (Fitz) for PDFs</li>
+<li><code>openpyxl</code> for XLSX</li>
+<li><code>python-docx</code> for DOCX</li>
+<li>Pillow (PIL) for image manipulation</li>
+</ul></li>
+<li><strong>Utility:</strong> Werkzeug (for <code>secure_filename</code>), <code>python-dotenv</code>, <code>toml</code>.</li>
+</ul>
+</section>
+<section id="data-flow-diagrams" class="level3">
+<h3 class="anchored" data-anchor-id="data-flow-diagrams">Data Flow Diagrams</h3>
+<section id="document-ingestion-and-processing-flow" class="level4">
+<h4 class="anchored" data-anchor-id="document-ingestion-and-processing-flow">Document Ingestion and Processing Flow</h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant AdminPanel as Admin Panel (app.py)
+    participant DocProcessor as UnifiedDocumentProcessor (document_processor.py)
+    participant ImgAnalyzer as ImageAnalyzer (image_analyzer.py)
+    participant OCR_Service as Tesseract/Gemini
+    participant EmbeddingsModel as SentenceTransformer
+    participant ChromaDB
+    participant CRUD_Module as CRUD_st.py
+    participant SQLiteDB
+
+    User-&gt;&gt;AdminPanel: Upload Files (PDF, DOCX, IMG, etc.)
+    AdminPanel-&gt;&gt;DocProcessor: process_document(file)
+    DocProcessor-&gt;&gt;DocProcessor: Determine File Type
+    alt PDF/Image File
+        DocProcessor-&gt;&gt;ImgAnalyzer: Extract Text/Analyze Image
+        ImgAnalyzer-&gt;&gt;OCR_Service: Perform OCR / Image Analysis
+        OCR_Service--&gt;&gt;ImgAnalyzer: Extracted Text / Analysis
+        ImgAnalyzer--&gt;&gt;DocProcessor: Text / Analysis
+    else Text-based (DOCX, XLSX, TXT)
+        DocProcessor-&gt;&gt;DocProcessor: Extract Text using specific library
+    end
+    DocProcessor-&gt;&gt;DocProcessor: Chunk Text
+    DocProcessor-&gt;&gt;EmbeddingsModel: Generate Embeddings for Chunks
+    EmbeddingsModel--&gt;&gt;DocProcessor: Embeddings
+    DocProcessor-&gt;&gt;ChromaDB: Store Chunks and Embeddings
+    DocProcessor--&gt;&gt;AdminPanel: Processing Result (metadata)
+    AdminPanel-&gt;&gt;CRUD_Module: create_document_record(metadata, file_path)
+    CRUD_Module-&gt;&gt;SQLiteDB: Insert Document Metadata
+    SQLiteDB--&gt;&gt;CRUD_Module: Success
+    CRUD_Module--&gt;&gt;AdminPanel: Success
+    AdminPanel--&gt;&gt;User: Display Success/Error</code></pre>
+</section>
+<section id="rag-chatbot-query-flow" class="level4">
+<h4 class="anchored" data-anchor-id="rag-chatbot-query-flow">RAG Chatbot Query Flow</h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant ChatUI as Chat Interface (app.py)
+    participant RAGChain as RAG Chain (app.py)
+    participant FusionRetriever
+    participant EmbeddingsModel as SentenceTransformer
+    participant ChromaDB
+    participant LLM
+
+    User-&gt;&gt;ChatUI: Enter Question
+    ChatUI-&gt;&gt;RAGChain: invoke(query)
+    RAGChain-&gt;&gt;FusionRetriever: retrieve_documents(query)
+    FusionRetriever-&gt;&gt;EmbeddingsModel: Embed Query
+    EmbeddingsModel--&gt;&gt;FusionRetriever: Query Embedding
+    FusionRetriever-&gt;&gt;ChromaDB: Similarity Search with Query Embedding
+    ChromaDB--&gt;&gt;FusionRetriever: Relevant Document Chunks
+    FusionRetriever-&gt;&gt;FusionRetriever: Apply RRF / Query Expansion (if enabled)
+    FusionRetriever--&gt;&gt;RAGChain: Ranked Contextual Chunks
+    RAGChain-&gt;&gt;LLM: Generate Answer (Prompt + Context + Question)
+    LLM--&gt;&gt;RAGChain: Generated Answer
+    RAGChain--&gt;&gt;ChatUI: Formatted Answer
+    ChatUI--&gt;&gt;User: Display Answer</code></pre>
+</section>
+</section>
+<section id="component-breakdown-and-interactions" class="level3">
+<h3 class="anchored" data-anchor-id="component-breakdown-and-interactions">Component Breakdown and Interactions</h3>
+<pre class="mermaid"><code>graph LR
+    subgraph UI_Layer [Streamlit UI - app.py]
+        A[Landing Page]
+        B[Admin Panel]
+        C[Chat Interface]
+        D[CRUD Forms]
+        E[Document List View]
+    end
+
+    subgraph Application_Logic
+        F(app.py - Main Orchestrator)
+        G(CRUD_st.py - CRUD Logic &amp; Initial Analysis)
+        H(document_processor.py - RAG Ingestion)
+        I(image_analyzer.py - Image/OCR Focus)
+        J(retrieval/fusion_retriever.py - Advanced Retrieval)
+    end
+
+    subgraph AI_Models_Services
+        K[LLMs - Groq, HuggingFace]
+        L[Embedding Model]
+        M[OCR - Tesseract, Gemini Vision]
+    end
+
+    subgraph Data_Persistence
+        N[SQLite - Metadata]
+        O[ChromaDB - Vectors]
+        P[File System - Uploaded Files, Markdown]
+    end
+
+    A --&gt; F; B --&gt; F; C --&gt; F; D --&gt; F; E --&gt; F;
+
+    F --&gt; G; F --&gt; H; F --&gt; J;
+    G --&gt; N; G --&gt; P; G --&gt; I; 
+    H --&gt; M; H --&gt; L; H --&gt; O; H --&gt; P; 
+    I --&gt; M;
+    J --&gt; K; J --&gt; O; J --&gt; L;
+
+    style UI_Layer fill:#lightblue,stroke:#333
+    style Application_Logic fill:#lightgreen,stroke:#333
+    style AI_Models_Services fill:#lightcoral,stroke:#333
+    style Data_Persistence fill:#lightgrey,stroke:#333</code></pre>
+<ul>
+<li><strong><code>d:\p3ri\arsipy-hki\app.py</code> (Main Orchestrator):</strong>
+<ul>
+<li>Initializes Streamlit application, sets up UI tabs, and manages session state.</li>
+<li>Handles admin authentication and displays the admin panel.</li>
+<li>Orchestrates document upload and calls <code>UnifiedDocumentProcessor</code> for RAG ingestion.</li>
+<li>Manages the RAG chat interface, constructs the RAG chain using <code>FusionRetriever</code>, and interacts with LLMs.</li>
+<li>Integrates CRUD functionalities by calling functions from <code>CRUD_st.py</code>.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\CRUD_st.py</code> (CRUD Logic &amp; Initial Analysis):</strong>
+<ul>
+<li>Defines functions for Create, Read, Update, Delete operations on document metadata in SQLite.</li>
+<li>Initializes the SQLite database schema (<code>crud_init_db</code>).</li>
+<li>Includes <code>analyze_uploaded_document</code> to extract initial metadata from files to pre-fill creation forms (distinct from RAG ingestion).</li>
+<li>Handles file saving to the <code>uploads</code> folder.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\document_processor.py</code> (RAG Ingestion Processor):</strong>
+<ul>
+<li><code>UnifiedDocumentProcessor</code> class is responsible for processing various file types (PDF, DOCX, XLSX, images, text).</li>
+<li>Extracts text content, performs OCR (Tesseract, Gemini) with image enhancement and quality checks.</li>
+<li>Analyzes images using Gemini.</li>
+<li>Chunks text and prepares <code>Document</code> objects for LangChain.</li>
+<li>Adds processed documents to the ChromaDB vector store.</li>
+<li>Saves extracted content as Markdown files.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\image_analyzer.py</code> (Image &amp; OCR Specialist):</strong>
+<ul>
+<li><code>EnhancedModelManager</code> and <code>DocumentMetadataExtractor</code> classes.</li>
+<li>Advanced image enhancement techniques for OCR.</li>
+<li>Multi-model analysis (Tesseract, Donut, Gemini) for robust metadata extraction from images.</li>
+<li>Focuses on extracting structured information like title, description, and dates from image-based documents.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\retrieval\fusion_retriever.py</code> (Advanced Retrieval):</strong>
+<ul>
+<li>Implements <code>FusionRetriever</code> which likely uses Reciprocal Rank Fusion (RRF) and query expansion to improve the relevance of documents retrieved for the RAG chain.</li>
+</ul></li>
+<li><strong>Data Stores:</strong>
+<ul>
+<li>SQLite (<code>document_management.db</code>): Stores structured metadata.</li>
+<li>ChromaDB (<code>chroma_db</code> directory): Stores vector embeddings of document chunks.</li>
+<li>File System (<code>uploads</code>, <code>extracted_text</code> directories): Stores uploaded raw files and generated Markdown files.</li>
+</ul></li>
+</ul>
+</section>
+<section id="data-storage-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="data-storage-strategy">Data Storage Strategy</h3>
+<ul>
+<li><strong>Structured Metadata (SQLite):</strong>
+<ul>
+<li>Chosen for its simplicity, serverless nature, and ease of integration with Python.</li>
+<li>Stores document attributes like title, dates, numbers, department, project, status, file paths, etc.</li>
+<li>Suitable for filtering, sorting, and direct display of record information.</li>
+</ul></li>
+<li><strong>Vector Embeddings (ChromaDB):</strong>
+<ul>
+<li>Used for efficient semantic search required by the RAG system.</li>
+<li>Stores dense vector representations of text chunks.</li>
+<li><code>sentence-transformers/all-mpnet-base-v2</code> (768 dimensions) is used for generating embeddings, ensuring consistency.</li>
+</ul></li>
+<li><strong>Raw Files (File System - <code>uploads</code> folder):</strong>
+<ul>
+<li>Original uploaded documents are stored directly on the file system. Paths are referenced in the SQLite database.</li>
+</ul></li>
+<li><strong>Processed Text (File System - <code>extracted_text</code> folder):</strong>
+<ul>
+<li>Markdown versions of extracted text and image analyses are saved, potentially for audit, review, or alternative access.</li>
+</ul></li>
+</ul>
+<p>This hybrid approach effectively separates structured queryable metadata from the unstructured content indexed for semantic retrieval.</p>
+</section>
+<section id="aiml-integration-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="aiml-integration-strategy">AI/ML Integration Strategy</h3>
+<ul>
+<li><strong>OCR:</strong> A cascading approach is used in <code>document_processor.py</code>. Tesseract is tried first. If the quality is low (for images), or if it’s a scanned PDF page, it falls back to more advanced models like Gemini Vision for better accuracy. Image pre-processing (enhancement, binarization, deskewing) is applied to improve OCR results.</li>
+<li><strong>Embeddings:</strong> <code>HuggingFaceEmbeddings</code> with “sentence-transformers/all-mpnet-base-v2” is used to convert text chunks into vector representations for ChromaDB. This model is chosen for its balance of performance and resource efficiency.</li>
+<li><strong>Large Language Models (LLMs):</strong>
+<ul>
+<li><strong>RAG Chatbot:</strong> <code>ChatGroq</code> (Llama 4 Maverick) and <code>DeepSeekLLM</code> (custom HuggingFace class) are available options for generating answers based on retrieved context. The prompt engineering in <code>app.py</code> (<code>QA_CHAIN_PROMPT</code>) is crucial for structuring the LLM’s output.</li>
+<li><strong>Document Analysis:</strong> Google Gemini (Pro/Flash) is used in <code>image_analyzer.py</code> and <code>document_processor.py</code> for deeper analysis of image content and for enhancing OCR text.</li>
+</ul></li>
+<li><strong>Retrieval Enhancement:</strong> <code>FusionRetriever</code> is employed to improve the quality of documents fed to the LLM by combining results from base retrieval, potentially using techniques like RRF and query expansion.</li>
+</ul>
+<p>The architecture allows for flexibility in choosing LLMs and leverages specialized models for specific tasks (e.g., Gemini for vision).</p>
+</section>
+<section id="security-considerations" class="level3">
+<h3 class="anchored" data-anchor-id="security-considerations">Security Considerations</h3>
+<ul>
+<li><strong>Admin Authentication:</strong> A simple password-based authentication (<code>ADMIN_PASSWORD</code> from <code>.env</code>) gates access to the admin panel, document processing, and deletion functionalities. This is a basic level of security suitable for internal tools but might need enhancement for broader deployment.</li>
+<li><strong>API Key Management:</strong> API keys for Groq, Google Gemini, and HuggingFace are loaded from environment variables (<code>.env</code> file), which is a good practice.</li>
+<li><strong>File Uploads:</strong> <code>werkzeug.utils.secure_filename</code> is used to sanitize filenames, mitigating path traversal risks. <code>ALLOWED_EXTENSIONS</code> restricts file types.</li>
+<li><strong>Data at Rest:</strong>
+<ul>
+<li>SQLite database and ChromaDB files are stored on the server’s file system. File system permissions are the primary protection.</li>
+<li>Uploaded documents are also on the file system.</li>
+</ul></li>
+<li><strong>Data in Transit:</strong> If deployed over HTTPS (standard for Streamlit Cloud or custom deployments with a reverse proxy), data between the user and server will be encrypted.</li>
+<li><strong>Prompt Injection:</strong> While the RAG system primarily uses internal documents, care should be taken if user input directly forms complex prompts for LLMs, though the current setup seems to use user input mainly as a query.</li>
+<li><strong>No User-Specific Data Segregation:</strong> The current system doesn’t appear to have multi-tenancy or user-specific document access controls beyond the admin role. All processed documents are accessible via the RAG system to any user who can access the chat interface.</li>
+</ul>
+</section>
+<section id="scalability-and-performance" class="level3">
+<h3 class="anchored" data-anchor-id="scalability-and-performance">Scalability and Performance</h3>
+<ul>
+<li><strong>Streamlit:</strong> Primarily designed for single-user or small-team applications. Scaling to a large number of concurrent users would require deploying multiple instances behind a load balancer or considering alternative frameworks for the frontend/backend.</li>
+<li><strong>LLM Inference:</strong> Relies on external APIs (Groq, HuggingFace, Gemini). Scalability here depends on the API providers’ rate limits and pricing tiers. Local LLM hosting is not implemented.</li>
+<li><strong>Embedding Generation:</strong> Performed locally on CPU. For very large volumes of documents, this could be a bottleneck during initial ingestion. GPU acceleration or a dedicated embedding service could be considered.</li>
+<li><strong>ChromaDB:</strong> Performance for similarity search is generally good for millions of vectors, but can degrade with extremely large datasets on limited hardware.</li>
+<li><strong>SQLite:</strong> Suitable for metadata of many thousands to a few million records. For very large scale, a more robust RDBMS might be needed.</li>
+<li><strong>Document Processing:</strong> Can be resource-intensive, especially OCR and image analysis. Processing large batches of files will take time. Asynchronous processing or a task queue system (e.g., Celery) could be beneficial for large uploads.</li>
+<li><strong>Memory Management:</strong> The <code>memory_track</code> context manager in <code>app.py</code> suggests awareness of memory usage, likely due to loading models or processing large files.</li>
+</ul>
+<p>For its intended purpose as an internal records management tool, the current architecture is likely adequate. Significant scaling would require architectural changes.</p>
+</section>
+<section id="deployment-model" class="level3">
+<h3 class="anchored" data-anchor-id="deployment-model">Deployment Model</h3>
+<ul>
+<li>The application is built with Streamlit, suggesting it can be deployed using:
+<ul>
+<li>Streamlit Cloud (easy deployment for public or authenticated apps).</li>
+<li>Self-hosting on a server (e.g., Linux VM, Docker container) running the <code>streamlit run app.py</code> command, often behind a reverse proxy like Nginx or Caddy for HTTPS and custom domain.</li>
+</ul></li>
+<li>Dependencies (Python packages, Tesseract OCR) need to be installed on the deployment environment.</li>
+<li>Environment variables (API keys, admin password) must be configured.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="software-developer-perspective" class="level2">
+<h2 class="anchored" data-anchor-id="software-developer-perspective">Software Developer Perspective</h2>
+<section id="codebase-structure-and-key-modules" class="level3">
+<h3 class="anchored" data-anchor-id="codebase-structure-and-key-modules">Codebase Structure and Key Modules</h3>
+<p>The project is organized into several Python files, each handling specific aspects of the application:</p>
+<ul>
+<li><strong><code>d:\p3ri\arsipy-hki\app.py</code>:</strong> The main entry point and orchestrator of the Streamlit application.
+<ul>
+<li>Handles UI layout (tabs, sidebar, forms).</li>
+<li>Manages admin authentication and admin panel functionalities.</li>
+<li>Initiates document processing via <code>UnifiedDocumentProcessor</code>.</li>
+<li>Sets up and runs the RAG (Retrieval Augmented Generation) chain for the chatbot.</li>
+<li>Integrates CRUD views by calling functions from <code>CRUD_st.py</code>.</li>
+<li>Defines custom LLM class <code>DeepSeekLLM</code> and LLM model selection.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\CRUD_st.py</code>:</strong> Manages all CRUD (Create, Read, Update, Delete) operations for document metadata.
+<ul>
+<li>Interacts with the SQLite database (<code>document_management.db</code>).</li>
+<li>Defines database schema initialization (<code>init_db</code>, aliased as <code>crud_init_db</code>).</li>
+<li>Includes <code>analyze_uploaded_document</code> for pre-filling document creation forms using AI-based analysis of the first uploaded file.</li>
+<li>Handles physical file saving and deletion from the <code>uploads</code> folder.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\document_processor.py</code>:</strong> Contains the <code>UnifiedDocumentProcessor</code> class.
+<ul>
+<li>Responsible for extracting text from various document types (PDFs, DOCX, XLSX, images, text).</li>
+<li>Integrates OCR (Tesseract, Gemini) with image enhancement and quality assessment.</li>
+<li>Performs image analysis using Gemini.</li>
+<li>Splits text into manageable chunks for the RAG system.</li>
+<li>Adds processed document chunks and metadata to the ChromaDB vector store.</li>
+<li>Saves extracted content and analyses to Markdown files in <code>extracted_text</code>.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\image_analyzer.py</code>:</strong> Focuses on advanced image analysis and OCR.
+<ul>
+<li><code>EnhancedModelManager</code>: Manages multiple AI models (Gemini, Donut, Tesseract).</li>
+<li><code>DocumentMetadataExtractor</code>: Extracts structured metadata (title, description, date) from images using a hybrid approach.</li>
+<li><code>TextProcessor</code>: Utility for formatting text and calculating metrics.</li>
+<li>Includes functions for image enhancement to improve OCR quality.</li>
+</ul></li>
+<li><strong><code>d:\p3ri\arsipy-hki\landing_page.py</code>:</strong> Defines the Streamlit components for the initial landing page.</li>
+<li><strong><code>d:\p3ri\arsipy-hki\retrieval\fusion_retriever.py</code>:</strong> Implements <code>FusionRetriever</code>, likely using Reciprocal Rank Fusion (RRF) and query expansion to enhance document retrieval for the RAG pipeline.</li>
+<li><strong><code>d:\p3ri\arsipy-hki\database.py</code>:</strong> Appears to be an older or alternative script for database initialization. The main application (<code>app.py</code>) uses <code>crud_init_db</code> from <code>CRUD_st.py</code>.</li>
+<li><strong><code>d:\p3ri\arsipy-hki\crud.py</code>:</strong> Seems to be another, possibly earlier, version of CRUD functionalities, distinct from <code>CRUD_st.py</code> which is integrated into the main app.</li>
+<li><strong><code>d:\p3ri\arsipy-hki\ocr_processor.py</code>:</strong> A simpler OCR processing class. The more advanced OCR logic resides in <code>document_processor.py</code> and <code>image_analyzer.py</code>.</li>
+</ul>
+<p><strong>Supporting Files/Directories (Inferred/Created):</strong> * <code>.env</code>: Stores environment variables (API keys, admin password). * <code>chroma_db/</code>: Directory for ChromaDB vector store persistence. * <code>uploads/</code>: Directory for storing uploaded raw document files. * <code>extracted_text/</code>: Directory for storing Markdown files generated from processed documents. * <code>assets/</code>: Contains images like logos used in the UI. * <code>.streamlit/config.toml</code>: Streamlit configuration, including custom CSS.</p>
+</section>
+<section id="core-logic-walkthroughs" class="level3">
+<h3 class="anchored" data-anchor-id="core-logic-walkthroughs">Core Logic Walkthroughs</h3>
+<section id="admin-authentication-app.py" class="level4">
+<h4 class="anchored" data-anchor-id="admin-authentication-app.py">Admin Authentication (<code>app.py</code>)</h4>
+<ol type="1">
+<li>Session state <code>st.session_state.admin_authenticated</code> (default <code>False</code>) tracks login status.</li>
+<li>Sidebar displays a password input field.</li>
+<li>On “Login” button click, input password compared against <code>admin_password</code> (from <code>.env</code>).</li>
+<li>If match, <code>admin_authenticated</code> set to <code>True</code>, app reruns to show admin controls.</li>
+<li>If not, an error message is shown.</li>
+<li>“Logout” button resets <code>admin_authenticated</code> to <code>False</code>.</li>
+</ol>
+</section>
+<section id="document-upload-and-initial-analysis-crud_st.py" class="level4">
+<h4 class="anchored" data-anchor-id="document-upload-and-initial-analysis-crud_st.py">Document Upload and Initial Analysis (<code>CRUD_st.py</code>)</h4>
+<p>This flow is for pre-filling the “Create Document” form, not for RAG ingestion. 1. In the “Create” tab of Records Management (<code>app.py</code> calls <code>create_document</code> from <code>CRUD_st.py</code>). 2. <code>st.file_uploader</code> allows admin to upload files. 3. If files are uploaded, <code>analyze_uploaded_document(uploaded_files[0])</code> is called. * This function in <code>CRUD_st.py</code> attempts to parse the first uploaded file (PDF, XLSX, DOCX, image). * It extracts text and uses regex and keyword matching to guess <code>title</code>, <code>description</code>, <code>doc_number</code>, <code>archive_code</code>, <code>department</code>. * Special handling for Excel “COVER” sheets. 4. The extracted metadata is used to pre-fill the <code>st.form</code> fields. 5. Admin reviews/edits the pre-filled data and submits the form. 6. On submission: * <code>save_uploaded_files</code> saves all uploaded files to the <code>uploads/</code> directory. * An SQL <code>INSERT</code> statement adds a new record to the <code>documents</code> table in SQLite, linking to department, project, and archive code via subqueries on their names/codes. File paths and names are stored as pipe-separated strings.</p>
+</section>
+<section id="document-processing-for-rag-app.py-document_processor.py" class="level4">
+<h4 class="anchored" data-anchor-id="document-processing-for-rag-app.py-document_processor.py">Document Processing for RAG (<code>app.py</code>, <code>document_processor.py</code>)</h4>
+<ol type="1">
+<li>Admin uploads files via <code>st.sidebar.file_uploader</code> in <code>app.py</code>.</li>
+<li>If “Process Documents” button is clicked, <code>process_uploaded_files(uploaded_files)</code> is called.</li>
+<li><code>initialize_or_load_vectorstore()</code> ensures ChromaDB is ready with the correct embedding model.</li>
+<li>A <code>UnifiedDocumentProcessor</code> instance is created.</li>
+<li>For each uploaded file:
+<ul>
+<li>If not already processed (checked against <code>st.session_state.uploaded_file_names</code>).</li>
+<li><code>processor.process_document(file)</code> is called.
+<ul>
+<li><code>extract_text()</code>: Determines file type, uses PyMuPDF for PDF, Pillow+Tesseract/Gemini for images, <code>openpyxl</code> for XLSX, <code>python-docx</code> for DOCX. Involves image enhancement and cascading OCR logic.</li>
+<li>Text is split into chunks using <code>RecursiveCharacterTextSplitter</code>.</li>
+<li>Metadata is prepared (source, file_type, OCR provider, quality score, etc.).</li>
+<li>Images from PDFs or image files are analyzed by Gemini, and analyses are appended to the text.</li>
+<li>A Markdown file of the content is saved via <code>_save_markdown</code>.</li>
+<li><code>Document</code> objects (LangChain schema) are created for each chunk with metadata.</li>
+<li><code>self.vectorstore.add_documents(documents)</code> adds chunks to ChromaDB.</li>
+</ul></li>
+<li>If successful, file name added to <code>st.session_state.uploaded_file_names</code>.</li>
+<li>A corresponding record is attempted to be created in SQLite via <code>create_document_record</code> from <code>CRUD_st.py</code> (this seems to duplicate some metadata storage, but links the RAG-processed content to a structured record).</li>
+</ul></li>
+</ol>
+</section>
+<section id="crud-operations-implementation-crud_st.py" class="level4">
+<h4 class="anchored" data-anchor-id="crud-operations-implementation-crud_st.py">CRUD Operations Implementation (<code>CRUD_st.py</code>)</h4>
+<ul>
+<li><strong><code>init_db()</code>:</strong> Creates SQLite tables (<code>departments</code>, <code>projects</code>, <code>archive_codes</code>, <code>documents</code>) if they don’t exist and populates them with initial lookup data.</li>
+<li><strong><code>create_document()</code>:</strong> (UI and logic) - Described in “Document Upload and Initial Analysis”.</li>
+<li><strong><code>read_documents()</code>:</strong>
+<ul>
+<li>Constructs an SQL query to join <code>documents</code> with <code>departments</code>, <code>projects</code>, and <code>archive_codes</code> to get textual names.</li>
+<li>Provides Streamlit selectbox filters for department, project, archive code, and status.</li>
+<li>Applies filters to the SQL query.</li>
+<li>Displays results in a <code>st.dataframe</code>.</li>
+<li>Offers CSV export.</li>
+</ul></li>
+<li><strong><code>update_document()</code>:</strong>
+<ul>
+<li>User selects a document to update from a selectbox.</li>
+<li>Fetches the document’s current data from SQLite.</li>
+<li>Populates a form with existing data.</li>
+<li>On submission, executes an SQL <code>UPDATE</code> statement.</li>
+</ul></li>
+<li><strong><code>delete_document()</code>:</strong>
+<ul>
+<li>Admin-only.</li>
+<li>User selects one or more documents via <code>st.multiselect</code>.</li>
+<li>Requires checkbox confirmation and typing “DELETE”.</li>
+<li>Iterates through selected documents:
+<ul>
+<li>Deletes associated physical files from <code>uploads/</code>.</li>
+<li>Deletes associated Markdown files from <code>extracted_text/</code>.</li>
+<li>Executes SQL <code>DELETE</code> statement for the record in SQLite.</li>
+</ul></li>
+</ul></li>
+</ul>
+</section>
+<section id="rag-chain-setup-and-execution-app.py" class="level4">
+<h4 class="anchored" data-anchor-id="rag-chain-setup-and-execution-app.py">RAG Chain Setup and Execution (<code>app.py</code>)</h4>
+<ol type="1">
+<li><strong>LLM Initialization:</strong> <code>get_llm_model</code> function initializes selected LLM (Groq or DeepSeek).</li>
+<li><strong>Vector Store:</strong> <code>st.session_state.vectorstore</code> (ChromaDB) is used.</li>
+<li><strong>Retriever:</strong>
+<ul>
+<li>A base retriever is created from <code>vectorstore.as_retriever()</code>.</li>
+<li><code>FusionRetriever</code> wraps the base retriever, taking the LLM for query expansion.</li>
+</ul></li>
+<li><strong>Prompt Template (<code>QA_CHAIN_PROMPT</code>):</strong> A detailed <code>ChatPromptTemplate</code> structures the interaction with the LLM, defining roles (System, Context, Question) and a specific output format (Summary, Details, Specs, References, Notes).</li>
+<li><strong>Document Prompt:</strong> A simple prompt for formatting individual retrieved documents before they are combined.</li>
+<li><strong>LLMChain:</strong> Combines the LLM with the <code>QA_CHAIN_PROMPT</code>.</li>
+<li><strong>StuffDocumentsChain:</strong> Chains the <code>LLMChain</code> with the <code>document_prompt</code>, specifying how to “stuff” the retrieved documents into the context.</li>
+<li><strong>RetrievalQA Chain:</strong> The final chain that combines the <code>StuffDocumentsChain</code> with the <code>FusionRetriever</code>. <code>return_source_documents=True</code> is set.</li>
+<li><strong>Execution:</strong>
+<ul>
+<li>User enters a question in the chat UI.</li>
+<li><code>qa_chain.invoke({'query': prompt1})</code> is called.</li>
+<li>The <code>FusionRetriever</code> gets relevant document chunks from ChromaDB.</li>
+<li>These chunks are formatted and “stuffed” into the <code>QA_CHAIN_PROMPT</code>’s context section.</li>
+<li>The LLM generates an answer based on the question and the provided context.</li>
+<li>The result (formatted answer) is displayed.</li>
+</ul></li>
+</ol>
+</section>
+</section>
+<section id="database-schema-sqlite" class="level3">
+<h3 class="anchored" data-anchor-id="database-schema-sqlite">Database Schema (SQLite)</h3>
+<p>Managed by <code>d:\p3ri\arsipy-hki\CRUD_st.py</code> (<code>init_db</code> function).</p>
+<pre class="mermaid"><code>erDiagram
+    departments ||--o{ documents : "has"
+    projects ||--o{ documents : "has"
+    archive_codes ||--o{ documents : "has"
+
+    departments {
+        INTEGER id PK
+        TEXT name UNIQUE
+    }
+
+    projects {
+        INTEGER id PK
+        TEXT name UNIQUE
+    }
+
+    archive_codes {
+        INTEGER id PK
+        TEXT code UNIQUE
+    }
+
+    documents {
+        INTEGER id PK
+        TEXT title
+        TEXT file_title
+        TEXT description
+        DATE doc_date
+        DATE end_date
+        TEXT doc_number
+        TEXT alt_number
+        INTEGER department_id FK "Refers to departments.id"
+        INTEGER project_id FK "Refers to projects.id"
+        INTEGER archive_code_id FK "Refers to archive_codes.id"
+        TEXT security_class
+        TEXT status
+        TIMESTAMP created_at
+        TEXT file_paths "Pipe-separated paths"
+        TEXT file_names "Pipe-separated names"
+    }</code></pre>
+<p><strong>Observations:</strong> * Standard relational schema for managing document metadata. * Lookup tables (<code>departments</code>, <code>projects</code>, <code>archive_codes</code>) are pre-populated with fixed values. * <code>file_paths</code> and <code>file_names</code> store multiple values as pipe-separated strings, which is a denormalization but simple for this context.</p>
+</section>
+<section id="key-classes-and-functions-deep-dive" class="level3">
+<h3 class="anchored" data-anchor-id="key-classes-and-functions-deep-dive">Key Classes and Functions Deep Dive</h3>
+<section id="unifieddocumentprocessor-dp3riarsipy-hkidocument_processor.py" class="level4">
+<h4 class="anchored" data-anchor-id="unifieddocumentprocessor-dp3riarsipy-hkidocument_processor.py"><code>UnifiedDocumentProcessor</code> (<code>d:\p3ri\arsipy-hki\document_processor.py</code>)</h4>
+<ul>
+<li><strong>Constructor:</strong> Initializes text splitter, logging, thresholds, Markdown formatter, and Gemini model.</li>
+<li><strong><code>extract_text(file)</code>:</strong> Core text extraction logic. Reads file content, routes to specific handlers (<code>_process_pdf</code>, <code>_process_image_with_cascade</code>) based on MIME type.</li>
+<li><strong><code>_process_pdf(content)</code>:</strong> Iterates PDF pages. If a page has little text, it’s converted to an image and processed by <code>_process_image_with_cascade</code>. Otherwise, uses PyMuPDF’s <code>get_text()</code>.</li>
+<li><strong><code>_process_image_with_cascade(image)</code>:</strong>
+<ul>
+<li>Enhances image using <code>_enhance_image_for_ocr</code>.</li>
+<li>Tries Tesseract OCR.</li>
+<li>Assesses Tesseract output quality using <code>_assess_text_quality</code>.</li>
+<li>If quality is below <code>self.quality_threshold</code>, falls back to Gemini Vision for text extraction.</li>
+<li>Combines results if both are used via <code>_combine_ocr_results</code>.</li>
+</ul></li>
+<li><strong><code>_enhance_image_for_ocr(image)</code>:</strong> Applies OpenCV transformations (grayscale, adaptive thresholding, denoising, contrast adjustment) to improve OCR input.</li>
+<li><strong><code>_extract_images_from_pdf(pdf_document)</code>:</strong> Extracts images from PDF and uses Gemini to generate textual analysis for each image.</li>
+<li><strong><code>process_document(file)</code>:</strong> Orchestrates the full processing for a single file:
+<ol type="1">
+<li>Extracts text and image analyses.</li>
+<li>Splits text into chunks.</li>
+<li>Prepares metadata (including OCR provider, quality score).</li>
+<li>Saves content to a Markdown file.</li>
+<li>Creates LangChain <code>Document</code> objects.</li>
+<li>Adds documents to the <code>self.vectorstore</code> (ChromaDB).</li>
+</ol></li>
+</ul>
+</section>
+<section id="enhancedmodelmanager-documentmetadataextractor-dp3riarsipy-hkiimage_analyzer.py" class="level4">
+<h4 class="anchored" data-anchor-id="enhancedmodelmanager-documentmetadataextractor-dp3riarsipy-hkiimage_analyzer.py"><code>EnhancedModelManager</code> &amp; <code>DocumentMetadataExtractor</code> (<code>d:\p3ri\arsipy-hki\image_analyzer.py</code>)</h4>
+<p>These classes are primarily used by <code>CRUD_st.py</code>’s <code>analyze_uploaded_document</code> for pre-filling forms, and parts of their logic (like image enhancement) are also seen in <code>UnifiedDocumentProcessor</code>. * <strong><code>EnhancedModelManager</code>:</strong> * Manages clients for Groq, Gemini, and HuggingFace Donut model. * <code>enhance_image()</code>: Advanced image pre-processing (contrast, sharpness, edge enhancement, adaptive thresholding, deskewing). * <code>analyze_with_multiple_models()</code>: Aims to combine Tesseract OCR, Donut model output, and Gemini analysis to extract metadata. * <strong><code>DocumentMetadataExtractor</code>:</strong> * Uses <code>EnhancedModelManager</code>. * <code>extract_date_patterns()</code>, <code>extract_title_candidates()</code>: Regex and heuristic-based extraction from OCR text. * <code>analyze_document()</code>: Orchestrates image enhancement, OCR, and Gemini calls to populate a metadata dictionary.</p>
+</section>
+<section id="fusionretriever-dp3riarsipy-hkiretrievalfusion_retriever.py" class="level4">
+<h4 class="anchored" data-anchor-id="fusionretriever-dp3riarsipy-hkiretrievalfusion_retriever.py"><code>FusionRetriever</code> (<code>d:\p3ri\arsipy-hki\retrieval\fusion_retriever.py</code>)</h4>
+<ul>
+<li>(Content of this file is not provided, but its role is inferred from <code>app.py</code>)</li>
+<li>Likely implements a custom LangChain <code>BaseRetriever</code>.</li>
+<li>Takes a base retriever (e.g., ChromaDB similarity search) and an LLM.</li>
+<li><strong>Query Expansion:</strong> May use the LLM to generate multiple variations of the user’s query to broaden the search.</li>
+<li><strong>Reciprocal Rank Fusion (RRF):</strong> Combines and re-ranks search results from the original query and expanded queries to improve relevance.</li>
+<li>The <code>k</code> parameter controls the final number of documents, and <code>weight_k</code> is the RRF constant.</li>
+</ul>
+</section>
+<section id="llm-integration-app.py" class="level4">
+<h4 class="anchored" data-anchor-id="llm-integration-app.py">LLM Integration (<code>app.py</code>)</h4>
+<ul>
+<li><strong><code>DeepSeekLLM</code> Class:</strong> A custom LangChain <code>LLM</code> wrapper for the HuggingFace InferenceClient, specifically for DeepSeek models. Handles API calls and response parsing.</li>
+<li><strong><code>get_llm_model(model_name)</code>:</strong> Factory function to instantiate either <code>ChatGroq</code> or <code>DeepSeekLLM</code> based on user selection.</li>
+<li><strong>RAG Chain:</strong> The selected LLM is passed into the <code>get_rag_chain</code> function, becoming the core generative component of the <code>RetrievalQA</code> chain.</li>
+</ul>
+</section>
+</section>
+<section id="environment-and-dependencies" class="level3">
+<h3 class="anchored" data-anchor-id="environment-and-dependencies">Environment and Dependencies</h3>
+<ul>
+<li><strong>Python Version:</strong> Not specified, but likely Python 3.8+.</li>
+<li><strong>Key Dependencies (inferred from imports):</strong>
+<ul>
+<li><code>streamlit</code>: For the web application framework.</li>
+<li><code>langchain</code>, <code>langchain-groq</code>, <code>langchain-chroma</code>, <code>langchain-google-genai</code> (commented out but implies intent), <code>langchain_community</code>: For AI/ML orchestration, RAG.</li>
+<li><code>chromadb</code>: Vector store.</li>
+<li><code>sqlite3</code>: Relational database.</li>
+<li><code>pysqlite3-binary</code> (implied by commented-out import shim): Alternative SQLite driver, often for specific environments like Streamlit Cloud.</li>
+<li><code>google-generativeai</code>: For Gemini API.</li>
+<li><code>groq</code>: For Groq API.</li>
+<li><code>huggingface_hub</code>: For HuggingFace InferenceClient (DeepSeek).</li>
+<li><code>sentence-transformers</code>: For embeddings.</li>
+<li><code>fitz</code> (PyMuPDF): PDF parsing.</li>
+<li><code>pytesseract</code>: Tesseract OCR wrapper.</li>
+<li><code>Pillow</code> (PIL): Image manipulation.</li>
+<li><code>opencv-python</code> (cv2): Image processing.</li>
+<li><code>python-docx</code>: DOCX parsing.</li>
+<li><code>openpyxl</code>: XLSX parsing.</li>
+<li><code>werkzeug</code>: For <code>secure_filename</code>.</li>
+<li><code>python-dotenv</code>: Loading <code>.env</code> files.</li>
+<li><code>toml</code>: Parsing <code>config.toml</code>.</li>
+<li><code>stqdm</code>: Progress bar for Streamlit.</li>
+<li><code>transformers</code>: For Donut model in <code>image_analyzer.py</code>.</li>
+<li><code>torch</code>: Dependency for <code>transformers</code>.</li>
+</ul></li>
+<li><strong>External Software:</strong> Tesseract OCR needs to be installed on the system where the app runs. The path is configured in <code>image_analyzer.py</code>.</li>
+<li><strong>Configuration:</strong>
+<ul>
+<li><code>.env</code> file for API keys (<code>GROQ_API_KEY</code>, <code>GOOGLE_API_KEY</code>, <code>HUGGINGFACE_API_KEY</code>) and <code>ADMIN_PASSWORD</code>.</li>
+<li><code>.streamlit/config.toml</code> for Streamlit app settings like custom CSS.</li>
+</ul></li>
+</ul>
+</section>
+<section id="code-quality-and-maintainability-observations" class="level3">
+<h3 class="anchored" data-anchor-id="code-quality-and-maintainability-observations">Code Quality and Maintainability Observations</h3>
+<ul>
+<li><strong>Modularity:</strong> The code is reasonably modular, with different functionalities separated into files (e.g., <code>CRUD_st.py</code>, <code>document_processor.py</code>).</li>
+<li><strong>Readability:</strong> Generally good, with comments in places. Function and variable names are mostly descriptive.</li>
+<li><strong>Error Handling:</strong> <code>try-except</code> blocks are used in many places, especially around file operations, API calls, and database interactions. Logging of errors is common.</li>
+<li><strong>Redundancy/Overlap:</strong>
+<ul>
+<li>Database initialization logic exists in both <code>d:\p3ri\arsipy-hki\CRUD_st.py</code> (used by <code>app.py</code>) and <code>d:\p3ri\arsipy-hki\database.py</code> (unused by <code>app.py</code>).</li>
+<li>CRUD logic seems to have two versions: <code>d:\p3ri\arsipy-hki\CRUD_st.py</code> (integrated) and <code>d:\p3ri\arsipy-hki\crud.py</code> (standalone/older).</li>
+<li>OCR and image analysis functionalities have some overlap between <code>d:\p3ri\arsipy-hki\document_processor.py</code> and <code>d:\p3ri\arsipy-hki\image_analyzer.py</code>. <code>document_processor.py</code> seems to be the primary one for RAG ingestion.</li>
+</ul></li>
+<li><strong>Configuration:</strong> Use of <code>.env</code> for secrets is good. <code>config.toml</code> for Streamlit settings is standard.</li>
+<li><strong>Logging:</strong> <code>logging</code> module is used, which is good for diagnostics.</li>
+<li><strong>Hardcoding:</strong> Some default values (e.g., department, project in <code>process_uploaded_files</code> for CRUD record creation) are hardcoded. This might be intentional for a specific workflow or could be made more flexible.</li>
+<li><strong>Streamlit Specifics:</strong> Heavy reliance on Streamlit’s execution model (e.g., <code>st.rerun()</code>, session state).</li>
+<li><strong>No Automated Tests:</strong> No evidence of unit tests or integration tests, which would be crucial for maintaining and evolving a system of this complexity.</li>
+</ul>
+</section>
+<section id="potential-areas-for-refactoring-or-improvement" class="level3">
+<h3 class="anchored" data-anchor-id="potential-areas-for-refactoring-or-improvement">Potential Areas for Refactoring or Improvement</h3>
+<ol type="1">
+<li><strong>Consolidate Redundant Code:</strong>
+<ul>
+<li>Remove or clearly deprecate <code>d:\p3ri\arsipy-hki\database.py</code> and <code>d:\p3ri\arsipy-hki\crud.py</code> if <code>CRUD_st.py</code> is the canonical version.</li>
+<li>Streamline image analysis and OCR logic. <code>UnifiedDocumentProcessor</code> could potentially delegate more to <code>ImageAnalyzer</code> components or fully absorb its necessary functionalities to reduce overlap.</li>
+</ul></li>
+<li><strong>Configuration Management:</strong> Move hardcoded default values (e.g., default department/project for new records) into a configuration file or make them selectable in the UI.</li>
+<li><strong>Database Interaction:</strong>
+<ul>
+<li>Consider using an ORM (like SQLAlchemy) for more robust and maintainable database interactions, especially if the schema evolves.</li>
+<li>The creation of a CRUD record in <code>process_uploaded_files</code> after RAG processing might be better integrated. Ensure data consistency between SQLite and the information used for RAG.</li>
+</ul></li>
+<li><strong>Asynchronous Processing:</strong> For document ingestion (<code>process_uploaded_files</code>), especially with multiple files or large files requiring extensive OCR/AI analysis, consider a background task queue (e.g., Celery with Redis/RabbitMQ) to prevent UI blocking and provide better feedback to the admin.</li>
+<li><strong>State Management in Streamlit:</strong> While session state is used, for more complex interactions, a more structured approach or careful management is needed to avoid unexpected reruns or state conflicts.</li>
+<li><strong>Testing:</strong> Introduce unit tests for core logic (e.g., text extraction, metadata parsing, RAG components) and integration tests for key workflows.</li>
+<li><strong>Class Structure in <code>CRUD_st.py</code>:</strong> The functions in <code>CRUD_st.py</code> could be organized into a class (e.g., <code>DocumentManager</code>) for better encapsulation, especially if it needs to manage database connections or shared state more explicitly.</li>
+<li><strong>Security Enhancements:</strong> For wider use, replace simple password auth with a more robust system (e.g., OAuth, user accounts with roles).</li>
+<li><strong>Code Duplication in <code>app.py</code> (Footer):</strong> The footer markdown is repeated in multiple tabs. This could be a utility function.</li>
+</ol>
+<hr>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>The HKI Records Management System is a powerful and ambitious project that effectively combines traditional records management principles with cutting-edge AI technologies. It demonstrates a strong understanding of the challenges in managing construction project documentation and offers innovative solutions for improving efficiency and accessibility.</p>
+<p><strong>Strengths:</strong> * <strong>Comprehensive Feature Set:</strong> Covers document ingestion, AI-powered analysis, CRUD operations, and an intelligent RAG chatbot. * <strong>Advanced AI Integration:</strong> Leverages multiple LLMs, sophisticated OCR techniques, image analysis, and advanced retrieval methods (<code>FusionRetriever</code>). * <strong>User-Friendly Interface:</strong> Streamlit provides an accessible UI for both end-users and administrators. * <strong>Focus on Practical Needs:</strong> Addresses real-world problems in records management for construction, such as quick information retrieval and metadata extraction.</p>
+<p><strong>Areas for Future Focus:</strong> * <strong>Robustness and Scalability:</strong> As the system matures and dataset grows, addressing scalability, asynchronous processing, and more robust error handling will be important. * <strong>Testing and CI/CD:</strong> Implementing a testing framework and CI/CD pipeline will enhance maintainability and reliability. * <strong>Security Hardening:</strong> For production environments with sensitive data, security measures beyond basic admin password protection should be considered. * <strong>Code Consolidation:</strong> Refactoring to reduce redundancy and clarify responsibilities between similar modules.</p>
+<p>Overall, the HKI RMS is a well-architected proof-of-concept or internal tool with significant potential. The current codebase provides a solid foundation for a highly valuable asset to HKI, capable of transforming how they interact with and manage their project records.</p>
+<hr>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
