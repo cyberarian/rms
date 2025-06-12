@@ -304,10 +304,18 @@ class UnifiedDocumentProcessor:
             
         return "\n".join(md_parts)
 
-    def process_document(self, file) -> dict:
-        """Process document with debugging output"""
+    def extract_document_content_and_metadata(self, file) -> dict:
+        """
+        Extracts text, metadata, image data, and layout info from a document.
+        Does NOT save markdown or add to vectorstore.
+        """
         try:
             logger.info(f"Starting to process {file.name}")
+            
+            # Initialize return structure
+            result = {'success': False, 'text': '', 'metadata': {}, 
+                      'images_data': [], 'layout_info': {}, 'error': None}
+
             
             # Store original file position and get content
             original_position = file.tell()
@@ -317,13 +325,14 @@ class UnifiedDocumentProcessor:
             # Extract text
             extraction_result = self.extract_text(file)
             text = extraction_result['text']
-            if not text:
-                return {'success': False, 'error': 'No text could be extracted'}
+            result['text'] = text
 
-            # Create chunks
-            chunks = self.text_splitter.split_text(text)
-            if not chunks:
-                return {'success': False, 'error': 'Text splitting produced no chunks'}
+            if not text.strip() and not file.type.startswith('image/'): # Allow image-only docs
+                result['error'] = 'No text could be extracted and not an image-only file'
+                # Still might want to process if it's an image for image analysis
+                if not file.type.startswith('image/'):
+                    return result
+
 
             # Extract metadata
             metadata = {
@@ -336,8 +345,8 @@ class UnifiedDocumentProcessor:
                 'ocr_provider': extraction_result['ocr_provider'],
                 'quality_score': extraction_result['quality_score']
             }
+            result['metadata'] = metadata
 
-            # Extract and analyze images if PDF
             images_data = []
             if file.type == 'application/pdf':
                 pdf_document = fitz.open(stream=file_content, filetype="pdf")
@@ -360,14 +369,8 @@ class UnifiedDocumentProcessor:
                     })
                 except Exception as e:
                     logger.error(f"Image analysis failed: {str(e)}")
-
-            # Add image analyses to content
-            image_analyses = self._format_image_analyses(images_data)
-            content = {
-                'content': text + image_analyses,  # Add image analyses to content
-                'metadata': metadata,
-                'title': metadata['title']
-            }
+            
+            result['images_data'] = images_data
             
             layout_info = {
                 'file_info': {
@@ -380,11 +383,62 @@ class UnifiedDocumentProcessor:
                     'ocr_used': file.type.startswith('image/')
                 }
             }
+            result['layout_info'] = layout_info
+            result['success'] = True
 
-            # Save markdown file
-            markdown_path = self._save_markdown(content, layout_info)
+            # Save initial markdown file here
+            content_for_initial_md_save = {
+                'content': text + self._format_image_analyses(images_data), # Combine text and image analysis
+                'metadata': metadata,
+                'title': metadata['title']
+            }
+            markdown_path = self._save_markdown(content_for_initial_md_save, layout_info)
             if markdown_path:
+                result['metadata']['markdown_path'] = markdown_path # Add path to metadata
+                metadata['markdown_path'] = markdown_path # Also update the local metadata dict
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error extracting document content: {str(e)}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'text': '', 'metadata': {}, 
+                    'images_data': [], 'layout_info': {}, 'error': str(e)}
+
+    def finalize_and_add_to_vectorstore(self, edited_text: str, metadata: dict, 
+                                        images_data: list, layout_info: dict) -> dict:
+        """
+        Takes (potentially edited) text, combines with image analysis, 
+        saves markdown, creates chunks, and adds to vectorstore.
+        """
+        try:
+            # Add image analyses to the (edited) text
+            image_analyses_markdown = self._format_image_analyses(images_data)
+            final_content_for_markdown = edited_text + image_analyses_markdown
+            
+            # Prepare content for saving markdown
+            content_for_md_save = {
+                'content': final_content_for_markdown,
+                'metadata': metadata, # Original metadata
+                'title': metadata['title']
+            }
+
+            markdown_path = self._save_markdown(content_for_md_save, layout_info)
+            if markdown_path:
+                # Ensure metadata reflects the potentially new/updated path,
+                # though _save_markdown uses file_title from metadata to generate path.
                 metadata['markdown_path'] = markdown_path
+
+            # The content that goes into the vector store should also include image analyses
+            # if they are relevant for retrieval.
+            content_for_vectorstore = edited_text # Or final_content_for_markdown, depending on strategy
+            if images_data: # Optionally add a summary or placeholder for images
+                content_for_vectorstore += "\n\n[Image analyses were performed on this document. Refer to the full document for details.]"
+
+            # Create chunks from the (edited) text + image analysis summary
+            chunks = self.text_splitter.split_text(content_for_vectorstore)
+            if not chunks:
+                return {'success': False, 'error': 'Text splitting produced no chunks'}
 
             # Create documents for vectorstore
             documents = []
@@ -403,14 +457,12 @@ class UnifiedDocumentProcessor:
                 'success': True,
                 'metadata': metadata,
                 'document_count': len(documents),
-                'total_chars': len(text)
+                'total_chars': len(content_for_vectorstore)
             }
-
         except Exception as e:
-            logger.error(f"Error processing document: {str(e)}")
+            logger.error(f"Error finalizing and adding to vectorstore: {str(e)}")
             logger.error(traceback.format_exc())
             return {'success': False, 'error': str(e)}
-
     def _save_markdown(self, content: dict, layout_info: dict) -> str:
         """Save document content as markdown file"""
         try:
@@ -439,10 +491,17 @@ class UnifiedDocumentProcessor:
         """Process multiple documents"""
         results = []
         for file in files:
-            result = self.process_document(file)
+            # This method is now less relevant with the two-step UI process.
+            # If used, it should reflect the extraction-only step.
+            result = self.extract_document_content_and_metadata(file)
             results.append({
                 'filename': file.name,
                 'success': result['success'],
                 'error': result.get('error', None)
             })
         return results
+
+    # process_document method is now split.
+    # If you need a single method for some other workflow, you might re-introduce it
+    # by calling extract_... and then finalize_...
+    # For this request, we assume the UI handles the two steps.
