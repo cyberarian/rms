@@ -18,7 +18,7 @@ memory_profiler
 PyMuPDF
 stqdm
 huggingface-hub
-#pysqlite3-binary 
+pysqlite3-binary 
 gspread
 oauth2client
 pandas
