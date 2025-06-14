@@ -18,7 +18,7 @@ memory_profiler
 PyMuPDF
 stqdm
 huggingface-hub
-#pysqlite3-binary 
+pysqlite3-binary 
 gspread
 oauth2client
 pandas
@@ -27,7 +27,6 @@ pytesseract
 google-generativeai
 pillow
 numpy
-streamlit
 opencv-python-headless
 textblob
 scipy
@@ -46,9 +45,9 @@ nest-asyncio
 langchain_groq
 PyJWT
 plotly
-transformer
+transformers
 torch
-sentence-transformer
+sentence-transformers
 streamlit-js-eval
 
 

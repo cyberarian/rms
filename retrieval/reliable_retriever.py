@@ -8,28 +8,33 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
 EVAL_PROMPT = """Analyze this document's relevance and factual grounding for the given question.
-Your task is to ensure information is directly supported by the source document.
+Use strict criteria to ensure information quality and relevance.
 
 QUESTION: {question}
 DOCUMENT: {document}
 
-Score each criteria (0-10) and provide evidence:
-1. RELEVANCE: Does it directly answer the question?
-   Score based only on explicit information, not implications.
-2. FACTUAL: Is the information explicitly stated in the document?
-   Score 0 if requires external knowledge or inference.
-3. GROUNDING: Can every claim be traced to specific text?
-   Score based on verifiable content only.
-4. COMPLETENESS: Does it contain all necessary context?
+Score each criteria (0-10) and provide evidence.
+Only score based on explicit information in the document, not inferences:
+
+1. RELEVANCE: Does it directly address the question?
+   Score based on how much of the question is answered explicitly.
+   
+2. FACTUAL: Is all information explicitly stated?
+   Score based on verifiable facts, not interpretations.
+   
+3. GROUNDING: Can claims be traced to specific text?
+   Score based on evidence presence and clarity.
+   
+4. COMPLETENESS: Is context fully provided?
    Score based on self-contained information.
 
-Provide scores and evidence in this format:
+Format:
 RELEVANCE: [score]
-EVIDENCE: [quote exact text that answers the question]
+EVIDENCE: [quote text that directly answers question]
 FACTUAL: [score]
-EVIDENCE: [quote supporting text for facts]
+EVIDENCE: [quote supporting facts]
 GROUNDING: [score]
-EVIDENCE: [list specific document sections used]
+EVIDENCE: [list document sections used]
 COMPLETENESS: [score]
 EVIDENCE: [quote context information]"""
 
@@ -42,10 +47,10 @@ class ReliableRetriever(BaseRetriever, BaseModel):
     min_score: float = Field(default=5.0, description="Minimum relevance score")
     weights: Dict[str, float] = Field(
         default={
-            "relevance": 0.4,
-            "accuracy": 0.3,
-            "completeness": 0.2,
-            "context": 0.1
+            "relevance": 0.45,
+            "factual": 0.3,
+            "grounding": 0.15,
+            "completeness": 0.1
         },
         description="Weights for different scoring factors"
     )
@@ -57,7 +62,7 @@ class ReliableRetriever(BaseRetriever, BaseModel):
         default=True,
         description="Require explicit evidence for inclusion"
     )
-
+    
     def _validate_evidence(self, response: Dict[str, Any], doc: Document) -> bool:
         """Verify that evidence is actually present in document"""
         if not self.require_evidence:
@@ -66,12 +71,25 @@ class ReliableRetriever(BaseRetriever, BaseModel):
         evidence = response.get('evidence', {})
         doc_text = doc.page_content.lower()
         
-        # Verify each piece of evidence exists in document
-        for ev in evidence.values():
-            if isinstance(ev, str) and ev.lower().strip() not in doc_text:
-                return False
-        return True
-
+        # Track evidence coverage
+        total_evidence = 0
+        valid_evidence = 0
+        
+        # Verify each piece of evidence
+        for evidence_type, ev in evidence.items():
+            if isinstance(ev, str) and ev.strip():
+                total_evidence += 1
+                # Check if evidence text exists in document
+                if ev.lower().strip() in doc_text:
+                    valid_evidence += 1
+                    
+        # Calculate evidence coverage ratio
+        if total_evidence == 0:
+            return False
+            
+        coverage = valid_evidence / total_evidence
+        return coverage >= self.evidence_threshold
+    
     def _parse_scores(self, response: str) -> Dict[str, Any]:
         """Parse scores and evidence with validation"""
         try:
@@ -87,11 +105,16 @@ class ReliableRetriever(BaseRetriever, BaseModel):
                     if key in ['relevance', 'factual', 'grounding', 'completeness']:
                         current_metric = key
                         try:
-                            scores[key] = float(value.strip())
-                        except:
+                            score = float(value.strip())
+                            # Validate score range
+                            scores[key] = max(0.0, min(10.0, score))
+                        except ValueError:
                             scores[key] = 0.0
                     elif key == 'evidence' and current_metric:
                         evidence[current_metric] = value.strip()
+            
+            # Normalize scores to 0-1 range
+            scores = {k: v/10.0 for k, v in scores.items()}
             
             return {
                 'scores': scores,
@@ -99,14 +122,14 @@ class ReliableRetriever(BaseRetriever, BaseModel):
             }
         except Exception:
             return {'scores': {}, 'evidence': {}}
-
+    
     def _calculate_weighted_score(self, scores: Dict[str, float]) -> float:
         """Calculate weighted average of scores"""
         return sum(
             scores.get(metric, 0.0) * weight 
             for metric, weight in self.weights.items()
         )
-
+    
     def verify_docs(self, docs: List[Document], query: str) -> List[Document]:
         """Score and verify documents with strict evidence requirements"""
         eval_chain = LLMChain(
@@ -140,7 +163,7 @@ class ReliableRetriever(BaseRetriever, BaseModel):
                             "verified": True
                         })
                         scored_docs.append(doc)
-            except Exception as e:
+            except Exception:
                 continue
 
         # Sort by weighted score
@@ -149,7 +172,7 @@ class ReliableRetriever(BaseRetriever, BaseModel):
             key=lambda x: float(x.metadata.get("relevance_score", 0.0)),
             reverse=True
         )
-
+    
     def _get_relevant_documents(
         self,
         query: str,
@@ -157,6 +180,11 @@ class ReliableRetriever(BaseRetriever, BaseModel):
         run_manager: CallbackManagerForRetrieverRun,
     ) -> List[Document]:
         """Get and verify relevant documents"""
-        initial_docs = self.retriever.get_relevant_documents(query)
-        verified_docs = self.verify_docs(initial_docs, query)
-        return verified_docs[:self.k]
+        try:
+            initial_docs = self.retriever.get_relevant_documents(query)
+            verified_docs = self.verify_docs(initial_docs, query)
+            return verified_docs[:self.k]
+        except Exception:
+            # Fallback to base retriever without verification
+            initial_docs = self.retriever.get_relevant_documents(query)
+            return initial_docs[:self.k]

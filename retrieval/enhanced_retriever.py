@@ -28,16 +28,29 @@ class EnhancedRetriever(BaseRetriever, BaseModel):
                 
             # Boost list items for "what" or "how" questions
             if metadata.get("is_list_item", False) and \
-               any(w in query.lower() for w in ["what", "how", "list"]):
+               any(w in query.lower() for w in ["what", "how", "list", "steps", "procedure"]):
                 structure_score += 0.2
+                
+            # Boost tables and figures for technical queries
+            if metadata.get("content_type") == "table_or_figure" and \
+               any(w in query.lower() for w in ["table", "figure", "diagram", 
+                                              "measurement", "specification", "spec"]):
+                structure_score += 0.3
+                
+            # Boost sections with technical specifications
+            if metadata.get("contains_specs", False) and \
+               any(w in query.lower() for w in ["specification", "requirement", 
+                                              "standard", "measurement", "spec"]):
+                structure_score += 0.3
                 
             # Boost based on content type
             content_type_scores = {
-                "table_or_figure": 0.3 if any(w in query.lower() 
-                    for w in ["table", "figure", "diagram"]) else 0,
                 "numbered_list": 0.2 if any(w in query.lower() 
-                    for w in ["steps", "procedure", "how"]) else 0,
-                "header": 0.1
+                    for w in ["steps", "procedure", "how", "process"]) else 0,
+                "header": 0.15,
+                "table": 0.25 if "table" in query.lower() else 0,
+                "technical_spec": 0.3 if any(w in query.lower() 
+                    for w in ["spec", "technical", "requirement"]) else 0
             }
             structure_score += content_type_scores.get(
                 metadata.get("content_type", ""), 0.0
@@ -55,26 +68,52 @@ class EnhancedRetriever(BaseRetriever, BaseModel):
         *,
         run_manager: CallbackManagerForRetrieverRun,
     ) -> List[Document]:
-        # Setup pipeline
+        """Execute multi-stage retrieval pipeline"""
+        # Setup retrieval pipeline with improved parameters
+        
+        # 1. Transform queries for better coverage
         transform_retriever = QueryTransformRetriever(
             retriever=self.base_retriever,
             llm=self.llm,
-            k=self.k * 2
+            k=self.k * 3  # Get more candidates initially
         )
         
+        # 2. Verify document relevance and evidence
         reliable_retriever = ReliableRetriever(
             retriever=transform_retriever,
             llm=self.llm,
-            k=self.k * 2
+            k=self.k * 2,
+            min_score=4.0,  # Lower threshold slightly for better recall
+            weights={  # Adjusted weights
+                "relevance": 0.45,
+                "factual": 0.3,
+                "grounding": 0.15,
+                "completeness": 0.1
+            },
+            evidence_threshold=0.6  # Slightly relaxed for better coverage
         )
         
+        # 3. Combine results using RRF
         fusion_retriever = FusionRetriever(
             retriever=reliable_retriever,
-            k=self.k
+            llm=self.llm,
+            k=self.k * 1.5,  # Get extra docs for final structure-based ranking
+            weight_k=40.0,  # Adjusted RRF constant
+            use_query_expansion=True
         )
         
-        # Get final results
-        results = fusion_retriever.get_relevant_documents(query)
-        final_results = self._rerank_by_structure(results, query)
-        
-        return final_results[:self.k]
+        # Get results through the pipeline
+        try:
+            # Get initial results through fusion
+            results = fusion_retriever.get_relevant_documents(query)
+            
+            # Final reranking using document structure
+            final_results = self._rerank_by_structure(results, query)
+            
+            # Return top k results
+            return final_results[:self.k]
+            
+        except Exception:
+            # Fallback to base retrieval if pipeline fails
+            results = self.base_retriever.get_relevant_documents(query)
+            return results[:self.k]

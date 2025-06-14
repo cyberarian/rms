@@ -1,6 +1,5 @@
 import streamlit as st
 import time
-import traceback
 
 def render_chatbot_tab(llm, initialize_or_load_vectorstore, get_rag_chain, memory_track, logger, traceback_module):
     st.subheader("💬 Chatbot")
@@ -73,5 +72,4 @@ def render_chatbot_tab(llm, initialize_or_load_vectorstore, get_rag_chain, memor
         
     # Footer
     st.markdown("---")
-    st.markdown("Powered by Arsipy, Next-Gen Records Management, Driven by AI", help="cyberariani@gmail.com")
-
+    st.markdown("Powered by Arsipy", help="cyberariani@gmail.com")

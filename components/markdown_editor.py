@@ -266,7 +266,6 @@ if __name__ == "__main__":
         )
         if submitted2:
             st.success(f"Toolbar editor content submitted: \n```markdown\n{content2}\n```")
-            st.snow()
 
     st.markdown("---")
     st.subheader("Current Content (Toolbar Editor):")
